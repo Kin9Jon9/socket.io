@@ -7,8 +7,15 @@ var io = require('socket.io') (http);
  */
 
  
-app.get('/room', function (req, res) {
-  res.sendFile(__dirname + '/views/index.html');
+app.get('/room/:id', function (req, res) {
+  const number = req.params.id;
+
+  if ( number == 1) {
+    res.sendFile(__dirname + '/views/index.html');
+  }else if ( number  == 2) {
+    res.sendFile(__dirname + '/views/index2.html');
+  }
+ 
 });
 
 /*
@@ -19,9 +26,17 @@ app.get('/list', function(req, res) {
 });
 
 io.on('connection', (socket) => {
-   socket.on('chat message', (msg)=>{
-     io.emit('chat message', msg);
-   });
+
+  socket.on('Room', (itemNumber, name) => {
+    socket.join(itemNumber, () => {
+      console.log('Succesfully Making' + itemNumber + 'Room');
+    });
+  });
+
+  socket.on('chat message', (itemNumber, name, msg) => {
+    io.to(itemNumber).emit('chat message', name, msg);
+  })
+
 });
 
 // 이부분 왜 app 그러니까 exrpess listen이 아니라 http listen만 되는지?
