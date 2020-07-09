@@ -1,0 +1,24 @@
+{
+  "name": "mysocket.io",
+  "version": "1.0.0",
+  "description": "using socket.io",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kin9Jon9/socket.io.git"
+  },
+  "author": "Kin9Jon9",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kin9Jon9/socket.io/issues"
+  },
+  "homepage": "https://github.com/Kin9Jon9/socket.io#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  }
+}
