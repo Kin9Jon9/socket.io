@@ -1,45 +1,69 @@
-var app = require('express') ()
-var http = require('http').createServer (app);
-var io = require('socket.io') (http);
+const express = require('express');
+const mongoose = require('mongoose');
+const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+const cors = require('cors');
+require('dotenv').config();
+
+const Room = require('./models/room');
+const Chat = require('./models/chat');
+
+app.use(cors);
 
 /**
- * request Data : userName, itemNumber
+ * mongoose connection
  */
 
- 
-app.get('/room/:id', function (req, res) {
-  const number = req.params.id;
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log('Successfully connected to mongodb'))
+  .catch((e) => console.error(e));
 
-  if ( number == 1) {
-    res.sendFile(__dirname + '/views/index.html');
-  }else if ( number  == 2) {
-    res.sendFile(__dirname + '/views/index2.html');
-  }
- 
+app.get('/', (req, res) => {
+  res.send('Hello World!');
 });
 
-/*
-* Show Item List
-*/
-app.get('/list', function(req, res) {
-  res.sendFile(__dirname + '/views/list.html');
-});
+/**
+ * socket.io Logic
+ * 대현이형이랑 같이 작업 할때 socket으로 받아오는거에 대한 처리, socket으로 넘겨주는거 및 에러 넘길 떄 처리
+ */
 
 io.on('connection', (socket) => {
 
-  socket.on('Room', (itemNumber, name) => {
-    socket.join(itemNumber, () => {
-      console.log('Succesfully Making' + itemNumber + 'Room');
+  //채팅방 최초 접속
+  socket.on('Room', (item, user1) => {
+
+    //이미 생성된 채팅방이라면 대화기록 불러옴
+    socket.join(item.num+user1, async () => {
+      
     });
+    
   });
 
-  socket.on('chat message', (itemNumber, name, msg) => {
-    io.to(itemNumber).emit('chat message', name, msg);
-  })
+  socket.on('chat message', async (item, user, msg) => {
+    
+    //기존에 없던 생성인지 확인 후 생성 이거 룸코드말고 _id로도ㄱㅊ?
+    const roomCode = item.num+user;
+    if(item.seller != user){
+      try {
+        const isExistRoom = await Room.findByroomCode(roomCode)
+        if(!isExistRoom) {
+          const result = await Room.create()
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    const saveReceivedMsg = await Chat.create(roomCode, user, msg);
 
+    io.to(roomCode).emit('chat message', roomCode, user, msg);
+  });
 });
 
-// 이부분 왜 app 그러니까 exrpess listen이 아니라 http listen만 되는지?
-http.listen(3000, () => {
-  console.log('listening on port 3000');
-})
+server.listen(process.env.PORT, () => {
+  console.log(`grooom Chatting server listening...`);
+});
